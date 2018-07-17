@@ -1,0 +1,144 @@
+---
+title: "B1C Asset Mapping"
+output:
+  html_document: default
+  pdf_document: default
+Author: Andres Parrado
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(warn=-1)
+```
+
+## Introduction
+
+This is an R Markdown document for the B1C Asset Mapping Project. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+This project makes extensive use of the programming language R <https://www.r-project.org/> as well as some specialized libraries like Leaflet <https://rstudio.github.io/leaflet/> and Shiny <http://www.shinyapps.io/>. It is recommended that whoever modifies this code gains some familiarity with these different software packages before proceeding.
+
+The following steps reproduce bit by bit the map that appears on the B1C website. Before starting, make sure that the directory folder contains the following files:
+
+**Write files here**
+
+
+The first thing we need to do is to load all the relevant libraries that will be used in the project.
+```{r libraries}
+
+library(leaflet)
+library(htmltools)
+```
+
+
+
+Then, we are going to load and use the B1C data on the different community resources to create bits of html code that will be subsequently used in our mapping. 
+
+```{r html info}
+#Loading data
+testdata <- read.csv("test_data.csv")
+
+#Making data into HTML
+for (i in 1:nrow(testdata)) {
+  testdata$html[i] <- paste(sep = "",
+                            "<b><a href='",testdata$Website[i],"'>",
+                            testdata$Name[i],"</a></b><br/>",
+                            testdata$Address.Line.1[i], "<br/>",
+                            testdata$Address.Line.2[i],"<br/>","Phone: ",
+                            testdata$Phone[i])
+}
+```
+
+** Talk about the next step
+
+
+```{r assigning icons}
+#Creating an iconset that has an icon for each category.
+iconSet <- iconList(
+  Housing = makeIcon("house-icon.png",iconWidth = 24, iconHeight = 24),
+  Hospital = makeIcon("hospital-icon.png",iconWidth = 24, iconHeight = 24)
+  )
+
+```
+
+
+**creating shapnes
+```{r shapes}
+stamford <- geojsonio::geojson_read("stamford.geojson", what = "sp")
+stamford$customers<-as.numeric(stamford$customers)
+```
+
+**Bins of color
+```{r color}
+bins <- c(0,2,4,6,8,Inf)
+pal <- colorBin("YlOrRd", domain = stamford$customers, bins = bins)
+```
+
+** Creating papers no papers
+```{r}
+#Creating variables for papers and no papers
+for (i in 1:nrow(testdata)){
+  if (testdata$Type[i] == "Housing" & testdata$Accept_Undocumented[i] == "Yes"){
+    testdata$group[i] = "Housing, needs papers"
+  }
+  
+  if (testdata$Type[i] == "Housing" & testdata$Accept_Undocumented[i] == "No"){
+    testdata$group[i] = "Housing, no papers"
+  }
+  
+  if (testdata$Type[i] == "Hospital" & testdata$Accept_Undocumented[i] == "Yes"){
+    testdata$group[i] = "Hospital, needs papers"
+  }
+  
+  if (testdata$Type[i] == "Hospital" & testdata$Accept_Undocumented[i] == "No"){
+    testdata$group[i] = "Hospital, no papers"
+  }
+  
+}
+
+```
+
+
+**First version of map
+```{r}
+m <- leaflet() %>% addTiles()
+m
+```
+
+**Next part
+```{r}
+m <- m %>% addMarkers(data=testdata, ~Longitude, ~Latitude,icon = ~iconSet[Type], popup = ~html,group=~Type)
+m
+```
+
+**another map but with polygons
+```{r}
+m <- m %>%  addPolygons(data = stamford, weight=3, opacity = 1, fillOpacity = 0.2, dashArray = "", group = "Show/Hide B1C Costumers",
+                  color= ~pal(customers),fillColor = ~pal(customers),
+                  highlight = highlightOptions(
+                    weight = 5,
+                    dashArray = "",
+                    fillOpacity = 0.5,
+                    bringToFront = TRUE))
+m
+```
+
+** Add label
+```{r}
+m <- m %>% addLegend(data=stamford,pal=pal, values=~customers,opacity=0.7,title="Number of B1C Customers",position="bottomright",group="Show/Hide B1C Costumers")
+m
+```
+
+
+** Add effects to the map
+```{r}
+m <- m %>%   addLayersControl(
+      overlayGroups = c("Housing, needs papers","Housing, no papers",
+                        "Hospital, needs papers", "Hospital, no papers","Show/Hide B1C Costumers"),
+      position = c("topleft"),
+      options = layersControlOptions(collapsed = FALSE,opacity = 1))
+m
+```
+
+
+--end
+
