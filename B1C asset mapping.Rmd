@@ -122,7 +122,7 @@ m <- m %>%  addPolygons(data = stamford, weight=3, opacity = 1, fillOpacity = 0.
 m
 ```
 
-** Add label
+** Add labels
 ```{r}
 m <- m %>% addLegend(data=stamford,pal=pal, values=~customers,opacity=0.7,title="Number of B1C Customers",position="bottomright",group="Show/Hide B1C Costumers")
 m
