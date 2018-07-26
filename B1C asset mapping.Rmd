@@ -70,7 +70,7 @@ stamford$customers<-as.numeric(stamford$customers)
 **Bins of color
 ```{r color}
 bins <- c(0,2,4,6,8,Inf)
-pal <- colorBin("YlOrRd", domain = stamford$customers, bins = bins)
+pal <- colorBin("BuPu", domain = stamford$customers, bins = bins)
 ```
 
 ** Creating papers no papers
