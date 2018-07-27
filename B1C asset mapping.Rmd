@@ -40,7 +40,7 @@ testdata <- read.csv("test_data.csv")
 #Making data into HTML
 for (i in 1:nrow(testdata)) {
   testdata$html[i] <- paste(sep = "",
-                            "<b><a href='",testdata$Website[i],"'>",
+                            "<b><a href='",testdata$Website[i],"' target='_blank'>",
                             testdata$Name[i],"</a></b><br/>",
                             testdata$Address.Line.1[i], "<br/>",
                             testdata$Address.Line.2[i],"<br/>","Phone: ",
@@ -54,8 +54,13 @@ for (i in 1:nrow(testdata)) {
 ```{r assigning icons}
 #Creating an iconset that has an icon for each category.
 iconSet <- iconList(
-  Housing = makeIcon("house-icon.png",iconWidth = 24, iconHeight = 24),
-  Hospital = makeIcon("hospital-icon.png",iconWidth = 24, iconHeight = 24)
+  Housing = makeIcon("housing.png",iconWidth = 26, iconHeight = 26),
+  Employment = makeIcon("employment.png",iconWidth = 26, iconHeight = 26),
+  Financial = makeIcon("financial.png",iconWidth = 26, iconHeight = 26),
+  Abuse = makeIcon("abuse.png",iconWidth = 26, iconHeight = 26),
+  Food = makeIcon("food.png",iconWidth = 26, iconHeight = 26),
+  Children = makeIcon("children.png",iconWidth = 26, iconHeight = 26),
+  Education = makeIcon("education.png",iconWidth = 26, iconHeight = 26)
   )
 
 ```
@@ -70,27 +75,39 @@ stamford$customers<-as.numeric(stamford$customers)
 **Bins of color
 ```{r color}
 bins <- c(0,2,4,6,8,Inf)
-pal <- colorBin("BuPu", domain = stamford$customers, bins = bins)
+pal <- colorBin("Blues", domain = stamford$customers, bins = bins)
 ```
 
-** Creating papers no papers
+** Creating icons
 ```{r}
-#Creating variables for papers and no papers
+#Creating variables for icons
 for (i in 1:nrow(testdata)){
-  if (testdata$Type[i] == "Housing" & testdata$Accept_Undocumented[i] == "Yes"){
-    testdata$group[i] = "Housing, needs papers"
+  if (testdata$Type[i] == "Employment"){
+    testdata$group[i] = "Employment/ Training/ Business Development"
   }
   
-  if (testdata$Type[i] == "Housing" & testdata$Accept_Undocumented[i] == "No"){
-    testdata$group[i] = "Housing, no papers"
+  if (testdata$Type[i] == "Financial"){
+    testdata$group[i] = "Financial Assistance and Material Aid"
   }
   
-  if (testdata$Type[i] == "Hospital" & testdata$Accept_Undocumented[i] == "Yes"){
-    testdata$group[i] = "Hospital, needs papers"
+  if (testdata$Type[i] == "Abuse"){
+    testdata$group[i] = "Abuse/ Domestic Violence/ Sexual Assault"
   }
   
-  if (testdata$Type[i] == "Hospital" & testdata$Accept_Undocumented[i] == "No"){
-    testdata$group[i] = "Hospital, no papers"
+  if (testdata$Type[i] == "Food" ){
+    testdata$group[i] = "Food Programs"
+  }
+  
+  if (testdata$Type[i] == "Children" ){
+    testdata$group[i] = "Children and Family Services"
+  }
+  
+  if (testdata$Type[i] == "Education" ){
+    testdata$group[i] = "Education and Literary Services"
+  }
+  
+  if (testdata$Type[i] == "Housing" ){
+    testdata$group[i] = "Housing"
   }
   
 }
@@ -112,7 +129,7 @@ m
 
 **another map but with polygons
 ```{r}
-m <- m %>%  addPolygons(data = stamford, weight=3, opacity = 1, fillOpacity = 0.2, dashArray = "", group = "Show/Hide B1C Costumers",
+m <- m %>%  addPolygons(data = stamford, weight=3, opacity = 1, fillOpacity = 0.35, dashArray = "", group = "Show/Hide B1C Clients",
                   color= ~pal(customers),fillColor = ~pal(customers),
                   highlight = highlightOptions(
                     weight = 5,
@@ -124,7 +141,7 @@ m
 
 ** Add labels
 ```{r}
-m <- m %>% addLegend(data=stamford,pal=pal, values=~customers,opacity=0.7,title="Number of B1C Customers",position="bottomright",group="Show/Hide B1C Costumers")
+m <- m %>% addLegend(data=stamford,pal=pal, values=~customers,opacity=0.7,title="Number of B1C Clients",position="bottomright",group="Show/Hide B1C Clients")
 m
 ```
 
@@ -132,8 +149,9 @@ m
 ** Add effects to the map
 ```{r}
 m <- m %>%   addLayersControl(
-      overlayGroups = c("Housing, needs papers","Housing, no papers",
-                        "Hospital, needs papers", "Hospital, no papers","Show/Hide B1C Costumers"),
+      overlayGroups = c("Employment/ Training/ Business Development","Financial Assistance and Material Aid",
+                        "Abuse/ Domestic Violence/ Sexual Assault", "Food Programs","Children and Family Services",
+                        "Education and Literary Services","Housing","Show/Hide B1C Clients"),
       position = c("topleft"),
       options = layersControlOptions(collapsed = FALSE,opacity = 1))
 m
